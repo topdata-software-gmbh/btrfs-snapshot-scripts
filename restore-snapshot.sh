@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Description:
 #   Restores a BTRFS snapshot of a directory which is a BTRFS subvolume.
@@ -84,21 +84,29 @@ restore_snapshot() {
     fi
 
     # Restore the snapshot
-    echo "Restoring snapshot from ${snapshot_path}..."
-    if btrfs subvolume snapshot "${snapshot_path}" "${shop_dir}"; then
-        echo "Snapshot restored successfully"
+    echo "Restoring snapshot from ${snapshot_path} to ${shop_dir}"
+    if btrfs subvolume delete "${shop_dir}"; then
+        echo "Deleted existing shop directory subvolume"
 
-        # Delete source snapshot if requested
-        if [ "$delete_snapshot" = true ]; then
-            echo "Deleting source snapshot..."
-            if ! btrfs subvolume delete "${snapshot_path}"; then
-                echo "Warning: Failed to delete source snapshot: ${snapshot_path}"
+        if btrfs subvolume snapshot "${snapshot_path}" "${shop_dir}"; then
+            echo "Snapshot restored successfully"
+
+            # Delete source snapshot if requested
+            if [ "$delete_snapshot" = true ]; then
+                echo "Deleting source snapshot..."
+                if ! btrfs subvolume delete "${snapshot_path}"; then
+                    echo "Warning: Failed to delete source snapshot: ${snapshot_path}"
+                fi
             fi
+        else
+            echo "Error creating writable snapshot"
+            exit 2
         fi
     else
-        echo "Error restoring snapshot"
+        echo "Error deleting existing shop directory subvolume"
         exit 2
     fi
+
 
     # Start the containers if docker-compose exists
     if [ "$docker_compose_exists" = true ]; then
@@ -110,6 +118,10 @@ restore_snapshot() {
 
     echo "Restore complete"
 }
+
+
+
+# ==== MAIN ====
 
 # Parse command line options
 delete_snapshot=false
