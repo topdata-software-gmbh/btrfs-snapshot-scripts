@@ -28,29 +28,49 @@
 # Date: October 2024
 
 usage() {
-    cat << EOF
-Usage: $(basename "$0") [-h|--help] [-d|--delete-snapshot] /path/to/snapshot /path/to/shop/directory
+    echo "Usage: $(basename "$0") [-h|--help] [-d|--delete-snapshot] /path/to/snapshot /path/to/shop/directory"
+    echo
+    echo "Restores a BTRFS snapshot of a directory which is a BTRFS subvolume."
+    echo
+    echo "Options:"
+    echo "    -h, --help            Show this help message and exit"
+    echo "    -d, --delete-snapshot Delete the source snapshot after successful restore"
+    echo
+    echo "Arguments:"
+    echo "    /path/to/snapshot          Full path to the snapshot to restore"
+    echo "    /path/to/shop/directory    Full path to target shop directory"
+    echo
+    echo "The script will:"
+    echo "1. Stop running containers (if docker-compose.yaml exists)"
+    echo "2. Restore the specified snapshot"
+    echo "3. Restart the containers (if docker-compose.yaml exists)"
+    echo "4. Optionally delete the source snapshot if -d flag is used"
+    echo
 
-Restores a BTRFS snapshot of a directory which is a BTRFS subvolume.
+    local SNAPSHOTS_DIR="/srv/snapshots"
+    local latest_snapshot=""
+    local shop_name=""
+    local SHOP_DIR=""
 
-Options:
-    -h, --help            Show this help message and exit
-    -d, --delete-snapshot Delete the source snapshot after successful restore
+    # Check if the snapshots directory is empty
+    if [ -z "$(ls -A "$SNAPSHOTS_DIR" 2>/dev/null)" ]; then
+        echo "Example:"
+        echo "    $(basename "$0") -d /srv/snapshots/os24-sw64__2024-10-23-121033 /srv/sites/os24-sw64"
+    else
+        # Find the latest snapshot in the directory based on timestamp in the filename
+        latest_snapshot=$(ls -1t "$SNAPSHOTS_DIR" | head -n 1)
 
-Arguments:
-    /path/to/snapshot          Full path to the snapshot to restore
-    /path/to/shop/directory    Full path to target shop directory
+        # Extract the shop name (part before '__')
+        shop_name="${latest_snapshot%%__*}"
 
-The script will:
-1. Stop running containers (if docker-compose.yaml exists)
-2. Restore the specified snapshot
-3. Restart the containers (if docker-compose.yaml exists)
-4. Optionally delete the source snapshot if -d flag is used
+        # Infer the shop directory from the shop name
+        SHOP_DIR="/srv/sites/$shop_name"
 
-Example:
-    $(basename "$0") -d /srv/snapshots/os24-sw64__2024-10-23-121033 /srv/sites/os24-sw64
-EOF
+        echo "Example to restore latest snapshot:"
+        echo "    $(basename "$0") -d $SNAPSHOTS_DIR/$latest_snapshot $SHOP_DIR"
+    fi
 }
+
 
 restore_snapshot() {
     local snapshot_path="$1"
