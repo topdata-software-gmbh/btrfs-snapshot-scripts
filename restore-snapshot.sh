@@ -83,10 +83,18 @@ restore_snapshot() {
         fi
     fi
 
-    # Restore the snapshot
-    echo "Restoring snapshot from ${snapshot_path} to ${shop_dir}"
+# Restore the snapshot
+# we rename as we have no permission for deletion
+echo "Restoring snapshot from ${snapshot_path} to ${shop_dir}"
+timestamp=$(date '+%Y-%m-%d-%H%M%S')
+trash_name="TRASH-${timestamp}-$(basename $shop_dir)"
+trash_path="/srv/snapshots/${trash_name}"
+
+if btrfs subvolume snapshot "${shop_dir}" "${trash_path}"; then
+    echo "Renamed existing shop directory subvolume to ${trash_path}"
+
     if btrfs subvolume delete "${shop_dir}"; then
-        echo "Deleted existing shop directory subvolume"
+        echo "Deleted original shop directory subvolume"
 
         if btrfs subvolume snapshot "${snapshot_path}" "${shop_dir}"; then
             echo "Snapshot restored successfully"
@@ -103,10 +111,13 @@ restore_snapshot() {
             exit 2
         fi
     else
-        echo "Error deleting existing shop directory subvolume"
+        echo "Error deleting original shop directory subvolume"
         exit 2
     fi
-
+else
+    echo "Error renaming existing shop directory subvolume"
+    exit 2
+fi
 
     # Start the containers if docker-compose exists
     if [ "$docker_compose_exists" = true ]; then
