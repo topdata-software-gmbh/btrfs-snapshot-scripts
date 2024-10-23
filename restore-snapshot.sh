@@ -46,29 +46,8 @@ usage() {
     echo "3. Restart the containers (if docker-compose.yaml exists)"
     echo "4. Optionally delete the source snapshot if -d flag is used"
     echo
-
-    local SNAPSHOTS_DIR="/srv/snapshots"
-    local latest_snapshot=""
-    local shop_name=""
-    local SHOP_DIR=""
-
-    # Check if the snapshots directory is empty
-    if [ -z "$(ls -A "$SNAPSHOTS_DIR" 2>/dev/null)" ]; then
-        echo "Example:"
-        echo "    $(basename "$0") -d /srv/snapshots/os24-sw64__2024-10-23-121033 /srv/sites/os24-sw64"
-    else
-        # Find the latest snapshot in the directory based on timestamp in the filename
-        latest_snapshot=$(ls -1t "$SNAPSHOTS_DIR" | head -n 1)
-
-        # Extract the shop name (part before '__')
-        shop_name="${latest_snapshot%%__*}"
-
-        # Infer the shop directory from the shop name
-        SHOP_DIR="/srv/sites/$shop_name"
-
-        echo "Example to restore latest snapshot:"
-        echo "    $(basename "$0") -d $SNAPSHOTS_DIR/$latest_snapshot $SHOP_DIR"
-    fi
+    echo "Example:"
+    echo "    $(basename "$0") -d /srv/snapshots/os24-sw64__2024-10-23-121033 /srv/sites/os24-sw64"
 }
 
 
