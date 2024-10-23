@@ -2,8 +2,7 @@
 #
 #
 # Description:
-#   Creates a BTRFS snapshot of a shop's Docker volumes directory.
-#   Designed for shops using docker-compose with volumes in a 'vol' subdirectory.
+#   Creates a BTRFS snapshot of a directory. The directory must be a BTRFS subvolume.
 #   Stores snapshots in /srv/snapshots with timestamp-based naming.
 #
 # Usage:
