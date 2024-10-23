@@ -31,10 +31,10 @@ usage() {
     cat << EOF
 Usage: $(basename "$0") [-h|--help] [-d|--delete-snapshot] /path/to/snapshot /path/to/shop/directory
 
-Restores a BTRFS snapshot of a shop's Docker volumes.
+Restores a BTRFS snapshot of a directory which is a BTRFS subvolume.
 
 Options:
-    -h, --help           Show this help message and exit
+    -h, --help            Show this help message and exit
     -d, --delete-snapshot Delete the source snapshot after successful restore
 
 Arguments:
@@ -43,11 +43,9 @@ Arguments:
 
 The script will:
 1. Stop running containers (if docker-compose.yaml exists)
-2. Backup current 'vol' directory
-3. Restore the specified snapshot
-4. Restart the containers (if docker-compose.yaml exists)
-5. Clean up the backup on success
-6. Optionally delete the source snapshot if -d flag is used
+2. Restore the specified snapshot
+3. Restart the containers (if docker-compose.yaml exists)
+4. Optionally delete the source snapshot if -d flag is used
 
 Example:
     $(basename "$0") -d /srv/snapshots/os24-sw64__2024-10-23-121033 /srv/sites/os24-sw64
