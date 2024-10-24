@@ -83,36 +83,45 @@ restore_snapshot() {
         fi
     fi
 
-    # Remove contents before trying to delete subvolume
-    echo "Cleaning up existing directory..."
+    # Move existing subvolume to trash
+    local trash_dir="/srv/trash"
+    local timestamp=$(date +%Y-%m-%d-%H%M%S)
+    local trash_path="${trash_dir}/$(basename "${shop_dir}")__${timestamp}"
+
+    echo "Moving existing directory to trash..."
     if [ -d "${shop_dir}" ]; then
-        if ! rm -rf "${shop_dir}"/* 2>/dev/null; then
-            echo "Warning: Could not clean directory contents, continuing anyway..."
+        # Create trash directory if it doesn't exist
+        if [ ! -d "$trash_dir" ]; then
+            if ! mkdir -p "$trash_dir"; then
+                echo "Error: Could not create trash directory: $trash_dir"
+                exit 1
+            fi
         fi
+
+        # Move the subvolume to trash
+        if ! mv "${shop_dir}" "${trash_path}"; then
+            echo "Error: Could not move existing directory to trash"
+            exit 1
+        fi
+        echo "Moved existing directory to: ${trash_path}"
     fi
 
     # Restore the snapshot
     echo "Restoring snapshot from ${snapshot_path} to ${shop_dir}"
-    if sudo btrfs subvolume delete "${shop_dir}"; then
-        echo "Deleted existing shop directory subvolume"
 
-        if sudo btrfs subvolume snapshot "${snapshot_path}" "${shop_dir}"; then
-            echo "Snapshot restored successfully"
-
-            # Delete source snapshot if requested
-            if [ "$delete_snapshot" = true ]; then
-                echo "Deleting source snapshot..."
-                if ! sudo btrfs subvolume delete "${snapshot_path}"; then
-                    echo "Warning: Failed to delete source snapshot: ${snapshot_path}"
-                fi
-            fi
-        else
-            echo "Error creating writable snapshot"
-            exit 2
-        fi
-    else
-        echo "Error deleting existing shop directory subvolume at ${shop_dir}"
+    if ! sudo btrfs subvolume snapshot "${snapshot_path}" "${shop_dir}"; then
+        echo "Error creating writable snapshot"
         exit 2
+    fi
+
+    echo "Snapshot restored successfully"
+
+    # Delete source snapshot if requested
+    if [ "$delete_snapshot" = true ]; then
+        echo "Deleting source snapshot..."
+        if ! sudo btrfs subvolume delete "${snapshot_path}"; then
+            echo "Warning: Failed to delete source snapshot: ${snapshot_path}"
+        fi
     fi
 
     # Start the containers if docker-compose exists
