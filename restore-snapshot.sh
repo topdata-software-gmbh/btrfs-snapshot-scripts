@@ -85,16 +85,16 @@ restore_snapshot() {
 
     # Restore the snapshot
     echo "Restoring snapshot from ${snapshot_path} to ${shop_dir}"
-    if btrfs subvolume delete "${shop_dir}"; then
+    if sudo btrfs subvolume delete "${shop_dir}"; then
         echo "Deleted existing shop directory subvolume"
 
-        if btrfs subvolume snapshot "${snapshot_path}" "${shop_dir}"; then
+        if sudo btrfs subvolume snapshot "${snapshot_path}" "${shop_dir}"; then
             echo "Snapshot restored successfully"
 
             # Delete source snapshot if requested
             if [ "$delete_snapshot" = true ]; then
                 echo "Deleting source snapshot..."
-                if ! btrfs subvolume delete "${snapshot_path}"; then
+                if ! sudo btrfs subvolume delete "${snapshot_path}"; then
                     echo "Warning: Failed to delete source snapshot: ${snapshot_path}"
                 fi
             fi
