@@ -83,6 +83,14 @@ restore_snapshot() {
         fi
     fi
 
+    # Remove contents before trying to delete subvolume
+    echo "Cleaning up existing directory..."
+    if [ -d "${shop_dir}" ]; then
+        if ! rm -rf "${shop_dir}"/* 2>/dev/null; then
+            echo "Warning: Could not clean directory contents, continuing anyway..."
+        fi
+    fi
+
     # Restore the snapshot
     echo "Restoring snapshot from ${snapshot_path} to ${shop_dir}"
     if sudo btrfs subvolume delete "${shop_dir}"; then
@@ -103,10 +111,9 @@ restore_snapshot() {
             exit 2
         fi
     else
-        echo "Error deleting existing shop directory subvolume"
+        echo "Error deleting existing shop directory subvolume at ${shop_dir}"
         exit 2
     fi
-
 
     # Start the containers if docker-compose exists
     if [ "$docker_compose_exists" = true ]; then
@@ -118,7 +125,6 @@ restore_snapshot() {
 
     echo "Restore complete"
 }
-
 
 
 # ==== MAIN ====
