@@ -37,7 +37,7 @@ clean_trash() {
     # Get list of subvolumes in trash
     echo "Scanning for subvolumes in $trash_dir..."
     local subvolumes
-    subvolumes=$(sudo btrfs subvolume list "$trash_dir" | awk '{print $NF}')
+    subvolumes=$(sudo btrfs subvolume list "$trash_dir" | grep "^.*path $trash_dir/" | awk '{print $NF}')
 
     if [ -z "$subvolumes" ]; then
         echo "No subvolumes found in $trash_dir"
@@ -47,7 +47,7 @@ clean_trash() {
     # Show subvolumes to be deleted and ask for confirmation
     echo "The following subvolumes will be deleted:"
     while IFS= read -r subvol; do
-        echo "  /$subvol"
+        echo "  $subvol"
     done <<< "$subvolumes"
     
     read -p "Do you want to proceed with deletion? [y/N] " -n 1 -r
@@ -60,10 +60,8 @@ clean_trash() {
     # Delete each subvolume
     echo "Deleting subvolumes..."
     while IFS= read -r subvol; do
-        # Get the full path by combining mount point and relative path
-        full_path="/$subvol"
-        echo "Deleting: $full_path"
-        if ! sudo btrfs subvolume delete "$full_path" 2>/dev/null; then
+        echo "Deleting: $subvol"
+        if ! sudo btrfs subvolume delete "$subvol" 2>/dev/null; then
             echo "Warning: Failed to delete subvolume: $full_path"
         fi
     done <<< "$subvolumes"
