@@ -37,7 +37,7 @@ clean_trash() {
     # Get list of subvolumes in trash
     echo "Scanning for subvolumes in $trash_dir..."
     local subvolumes
-    subvolumes=$(sudo find "$trash_dir" -maxdepth 1 -type d -not -path "$trash_dir")
+    subvolumes=$(find "$trash_dir" -maxdepth 1 -type d -not -path "$trash_dir")
 
     if [ -z "$subvolumes" ]; then
         echo "No subvolumes found in $trash_dir"
