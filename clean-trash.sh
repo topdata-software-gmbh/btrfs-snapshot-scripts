@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
 # Description:
-#   Deletes all BTRFS subvolumes found in the /trash directory
+#   Deletes all BTRFS subvolumes found in the /srv/trash directory
 #
 # Usage:
 #   ./clean-trash.sh [-h|--help]
@@ -19,14 +19,14 @@
 usage() {
     echo "Usage: $(basename "$0") [-h|--help]"
     echo
-    echo "Deletes all BTRFS subvolumes found in the /trash directory"
+    echo "Deletes all BTRFS subvolumes found in the /srv/trash directory"
     echo
     echo "Options:"
     echo "    -h, --help    Show this help message and exit"
 }
 
 clean_trash() {
-    local trash_dir="/trash"
+    local trash_dir="/srv/trash"
 
     # Check if trash directory exists
     if [ ! -d "$trash_dir" ]; then
